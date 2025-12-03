@@ -1,10 +1,20 @@
 import streamlit as st
 import google.generativeai as genai
+import sqlite3
+import datetime
 
-# ככה מושכים את הסיסמה מהכספת הסודית של Streamlit Cloud
-api_key = st.secrets["GOOGLE_API_KEY"]
-genai.configure(api_key=api_key)
+# --- התיקון: משיכת המפתח מהכספת ---
+# אנחנו אומרים לו: לך ל-Secrets ותביא את מה ששמרנו תחת השם GOOGLE_API_KEY
+try:
+    api_key = st.secrets["GOOGLE_API_KEY"]
+    genai.configure(api_key=api_key)
+except FileNotFoundError:
+    st.error("חסר קובץ secrets! (אם אתה מריץ מקומית)")
+except KeyError:
+    st.error("לא הוגדר GOOGLE_API_KEY ב-Secrets של האפליקציה.")
 
+# --- המשך הקוד הרגיל שלך מכאן... ---
+# def init_db(): ...
 # מגדירים לתוכנה להשתמש במפתח הזה
 genai.configure(api_key=GOOGLE_API_KEY)
 
@@ -62,3 +72,4 @@ if st.button("צור ספר! 🚀", type="primary"):
                 st.error(f"אופס, הייתה שגיאה: {e}")
 
                 st.info("טיפ: בדוק אם המפתח שהעתקת נכון ומלא.")
+
