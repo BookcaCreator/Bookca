@@ -1,30 +1,24 @@
-# --- הגנה: אם לא מחובר, זרוק אותו לדף הבית ---
-if 'logged_in' not in st.session_state or not st.session_state['logged_in']:
-    st.warning("עליך להתחבר קודם!")
-    st.switch_page("Home.py") # מעיף אותו חזרה ללוגין
-    st.stop()
 import streamlit as st
 import sqlite3
 import os
 
 st.set_page_config(page_title="הספרייה שלי", page_icon="📚", layout="wide")
 
-# --- וידוא שהמסד קיים ---
-def init_db():
-    conn = sqlite3.connect('stories.db')
-    c = conn.cursor()
-    c.execute('''CREATE TABLE IF NOT EXISTS stories
-                 (hero TEXT, genre TEXT, content TEXT, created_at TEXT)''')
-    conn.commit()
-    conn.close()
+# --- 🛡️ הגנה ---
+if 'logged_in' not in st.session_state or not st.session_state['logged_in']:
+    st.warning("עליך להתחבר קודם!")
+    st.switch_page("Home.py")
+    st.stop()
 
-# --- פונקציה לשליפת הספרים ---
-def get_all_stories():
-    init_db() # קוראים לזה לפני הכל
+# --- פונקציה לשליפת הספרים (רק של המשתמש המחובר!) ---
+def get_my_stories():
     conn = sqlite3.connect('stories.db')
     c = conn.cursor()
+    # בודק אם הטבלה קיימת בכלל
     try:
-        c.execute("SELECT rowid, * FROM stories ORDER BY rowid DESC")
+        current_user = st.session_state['username']
+        # ה-WHERE username=? זה הסינון הקריטי
+        c.execute("SELECT rowid, * FROM stories WHERE username=? ORDER BY rowid DESC", (current_user,))
         data = c.fetchall()
     except:
         data = []
@@ -32,14 +26,14 @@ def get_all_stories():
     return data
 
 # --- כותרת ---
-st.title("📚 הספרייה שלי")
+st.title(f"הספרייה של {st.session_state['username']} 📚")
 st.divider()
 
 # --- הצגת הספרים ---
-stories = get_all_stories()
+stories = get_my_stories()
 
 if not stories:
-    st.info("הספרייה ריקה עדיין... רוץ ליצור את הספר הראשון שלך!")
+    st.info("עדיין לא כתבת ספרים. זה הזמן ליצור!")
     if st.button("עבור ליצירת ספר"):
         st.switch_page("pages/1_Create_Book.py")
 
@@ -48,34 +42,31 @@ else:
     for index, story in enumerate(stories):
         with cols[index % 3]:
             with st.container(border=True):
-                # story = (id, hero, genre, content, date)
-                st.subheader(f"📘 {story[1]}")
-                st.caption(f"ז'אנר: {story[2]} | {story[4]}")
+                # מבנה הטבלה עכשיו: (username, hero, genre, content, created_at)
+                # story[2] זה הגיבור/כותרת
+                st.subheader(f"📘 {story[2]}") 
+                st.caption(f"ז'אנר: {story[3]} | {story[5]}")
                 st.write("---")
-                st.write(story[3][:100] + "...")
+                st.write(story[4][:100] + "...")
                 
-                if st.button("קרא ספר מלא", key=f"read_{index}"):
-                    @st.dialog(f"הסיפור על {story[1]}")
+                if st.button("קרא ספר", key=f"read_{index}"):
+                    @st.dialog(f"{story[2]}")
                     def show_story():
-                        st.markdown(story[3])
+                        st.markdown(story[4])
                     show_story()
+
+# --- 👮 אזור גיבוי למנהל ---
 st.divider()
-st.subheader("👮 אזור מנהלים (גיבוי)")
-
-# סיסמה פשוטה כדי שסתם אנשים לא יורידו את המידע
-password = st.text_input("הכנס סיסמת מנהל להורדת הגיבוי:", type="password")
-
-if password == "9806": # תשנה לסיסמה שרק אתה יודע
-    
-    # בודק אם הקובץ בכלל קיים
-    if os.path.exists("stories.db"):
-        with open("stories.db", "rb") as fp:
-            st.download_button(
-                label="📥 הורד את קובץ הנתונים (stories.db) למחשב שלי",
-                data=fp,
-                file_name="stories_backup.db",
-                mime="application/octet-stream"
-            )
-        st.success("יש קובץ נתונים מוכן להורדה! הורד אותו כדי לשמור את הסיפורים של כולם.")
-    else:
-        st.warning("עדיין לא נוצרו סיפורים, אז אין קובץ להורדה.")
+with st.expander("ניהול וגיבוי (למנהלים בלבד)"):
+    password = st.text_input("סיסמת מנהל:", type="password")
+    if password == "BookCraft2026": 
+        if os.path.exists("stories.db"):
+            with open("stories.db", "rb") as fp:
+                st.download_button(
+                    label="📥 הורד גיבוי מלא (stories.db)",
+                    data=fp,
+                    file_name="stories_backup.db",
+                    mime="application/octet-stream"
+                )
+        else:
+            st.warning("אין עדיין קובץ נתונים.")
