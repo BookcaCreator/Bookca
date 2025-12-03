@@ -16,16 +16,17 @@ def check_hashes(password, hashed_text):
 
 # --- ניהול מסד נתונים (משתמשים + סיפורים) ---
 def init_db():
-    conn = sqlite3.connect('stories_v2.db')
+    conn = sqlite3.connect('stories_v3.db') # עברנו לגרסה 3!
     c = conn.cursor()
     
-    # טבלת משתמשים (חדש!)
+    # טבלת משתמשים
     c.execute('''CREATE TABLE IF NOT EXISTS usersTable
                  (username TEXT PRIMARY KEY, password TEXT, email TEXT, name TEXT)''')
     
-    # טבלת סיפורים (מעודכנת - הוספנו עמודת username)
+    # טבלת סיפורים - הוספנו עמודת is_public (האם פורסם) ועמודת likes
     c.execute('''CREATE TABLE IF NOT EXISTS stories
-                 (username TEXT, hero TEXT, genre TEXT, content TEXT, created_at TEXT)''')
+                 (username TEXT, hero TEXT, genre TEXT, content TEXT, created_at TEXT, 
+                  is_public BOOLEAN DEFAULT 0, likes INTEGER DEFAULT 0)''')
                  
     conn.commit()
     conn.close()
@@ -116,3 +117,4 @@ else:
     st.info("👈 בחר פעולה מהתפריט בצד: 'Create Book' או 'My Library'")
 
 # --- כפתור חירום לתיקון המסד (מחק אותי אחרי השימוש!) ---
+
