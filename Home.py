@@ -27,8 +27,10 @@ def check_hashes(password, hashed_text):
 def init_db():
     conn = sqlite3.connect('stories_v3.db')
     c = conn.cursor()
+    # הוספנו את עמודת role
     c.execute('''CREATE TABLE IF NOT EXISTS usersTable
-                 (username TEXT PRIMARY KEY, password TEXT, email TEXT, name TEXT)''')
+                 (username TEXT PRIMARY KEY, password TEXT, email TEXT, name TEXT, role TEXT DEFAULT 'User')''')
+    
     c.execute('''CREATE TABLE IF NOT EXISTS stories
                  (username TEXT, hero TEXT, genre TEXT, content TEXT, created_at TEXT, 
                   is_public BOOLEAN DEFAULT 0, likes INTEGER DEFAULT 0)''')
@@ -38,8 +40,9 @@ def init_db():
 def add_user(username, password, email, name):
     conn = sqlite3.connect('stories_v3.db')
     c = conn.cursor()
-    c.execute('INSERT INTO usersTable(username,password,email,name) VALUES (?,?,?,?)', 
-              (username, password, email, name))
+    # כברירת מחדל, כל מי שנרשם הוא 'User' (ולא Admin)
+    c.execute('INSERT INTO usersTable(username,password,email,name,role) VALUES (?,?,?,?,?)', 
+              (username, password, email, name, 'User'))
     conn.commit()
     conn.close()
 
@@ -164,3 +167,4 @@ else:
     with c3:
         st.info("🌎 **הקהילה**")
         if st.button("לקהילה"): st.switch_page("pages/3_Community.py")
+
