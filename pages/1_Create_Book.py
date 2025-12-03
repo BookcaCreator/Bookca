@@ -13,13 +13,12 @@ if 'logged_in' not in st.session_state or not st.session_state['logged_in']:
     st.stop()
 
 # --- חיבור למוח (Gemini) ---
+# ככה זה צריך להיות:
 try:
-    api_key = st.secrets["GOOGLE_API_KEY"]
+    api_key = st.secrets["GOOGLE_API_KEY"] # לוקח מהכספת
     genai.configure(api_key=api_key)
 except:
     st.error("חסר מפתח API ב-Secrets")
-    st.stop()
-
 MODEL_NAME = 'models/gemini-2.0-flash' 
 
 # --- שמירת נתונים (SQL) - הגרסה החדשה עם שם משתמש! ---
