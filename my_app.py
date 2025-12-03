@@ -3,73 +3,75 @@ import google.generativeai as genai
 import sqlite3
 import datetime
 
-# --- התיקון: משיכת המפתח מהכספת ---
-# אנחנו אומרים לו: לך ל-Secrets ותביא את מה ששמרנו תחת השם GOOGLE_API_KEY
+# --- שלב 1: הגדרות וחיבור ל-Secrets ---
+# כאן התיקון הגדול! אנחנו מושכים את המפתח מהכספת של Streamlit
 try:
     api_key = st.secrets["GOOGLE_API_KEY"]
     genai.configure(api_key=api_key)
-except FileNotFoundError:
-    st.error("חסר קובץ secrets! (אם אתה מריץ מקומית)")
-except KeyError:
-    st.error("לא הוגדר GOOGLE_API_KEY ב-Secrets של האפליקציה.")
+except Exception as e:
+    st.error("⚠️ שגיאה בטעינת המפתח! וודא שהגדרת את GOOGLE_API_KEY ב-Secrets באתר של Streamlit.")
+    st.stop() # עוצר את האפליקציה אם אין מפתח
 
-# --- המשך הקוד הרגיל שלך מכאן... ---
-# def init_db(): ...
-# מגדירים לתוכנה להשתמש במפתח הזה
-genai.configure(api_key=GOOGLE_API_KEY)
+# --- פונקציות SQL (שמירת סיפורים) ---
+def init_db():
+    conn = sqlite3.connect('stories.db')
+    c = conn.cursor()
+    c.execute('''CREATE TABLE IF NOT EXISTS stories
+                 (hero TEXT, genre TEXT, content TEXT, created_at TEXT)''')
+    conn.commit()
+    conn.close()
 
-# --- הגדרות עיצוב ---
-st.set_page_config(page_title="הסופר המלאכותי", page_icon="📚", layout="centered")
+def save_story_to_db(hero, genre, content):
+    conn = sqlite3.connect('stories.db')
+    c = conn.cursor()
+    date = datetime.datetime.now().strftime("%d/%m/%Y %H:%M")
+    c.execute("INSERT INTO stories VALUES (?, ?, ?, ?)", (hero, genre, content, date))
+    conn.commit()
+    conn.close()
 
-st.title("📚 הסופר המלאכותי")
-st.caption("מיזם כיתת ממר''ם - Education 2026")
+def get_all_stories():
+    conn = sqlite3.connect('stories.db')
+    c = conn.cursor()
+    c.execute("SELECT * FROM stories ORDER BY rowid DESC")
+    data = c.fetchall()
+    conn.close()
+    return data
 
-# --- צד שמאל: הגדרות ---
-with st.sidebar:
-    st.header("⚙️ הגדרות הסיפור")
-    hero_name = st.text_input("שם הגיבור:", "דני")
-    genre = st.selectbox("ז'אנר:", ["הרפתקאות", "מדע בדיוני", "מתח", "פנטזיה", "סיפור מצחיק"])
-    length = st.select_slider("אורך הסיפור:", options=["קצר", "בינוני", "ארוך"])
+# אתחול מסד הנתונים
+init_db()
 
-# --- המרכז: הרעיון ---
-st.write("### על מה נכתוב היום?")
-user_idea = st.text_area("תאר את הרעיון לסיפור:", "ילד שמוצא מפה עתיקה בדרך לבית הספר ומגלה עולם נסתר")
+# --- עיצוב האתר ---
+st.set_page_config(page_title="BookCraft AI", page_icon="📚", layout="centered")
 
-# --- הלוגיקה (המוח) ---
-if st.button("צור ספר! 🚀", type="primary"):
-    
-    # בדיקה שהמפתח לא ריק
-    if "הדבק_כאן" in GOOGLE_API_KEY:
-        st.error("⚠️ שכחת להדביק את ה-API Key בקוד! (שורה 6)")
-    else:
-        # אנימציה בזמן שהמחשב חושב
-        with st.spinner('הבינה המלאכותית כותבת את הסיפור...'):
-            try:
-                # בחירת המודל
-                model = genai.GenerativeModel('gemini-1.5-flash')
-                
-                # הבקשה ל-AI
-                my_prompt = f"""
-                כתוב לי סיפור יצירתי ומרתק בעברית.
-                הגיבור: {hero_name}
-                הסגנון: {genre}
-                אורך: {length}
-                רעיון מרכזי: {user_idea}
-                
-                חלק את הסיפור לפסקאות וכותרות כדי שיהיה נעים לקריאה.
-                """
-                
-                # יצירת הסיפור
-                response = model.generate_content(my_prompt)
-                
-                # הצגת התוצאה
-                st.success("הסיפור מוכן!")
-                st.markdown("---")
-                st.markdown(response.text) 
-                st.balloons()
-                
-            except Exception as e:
-                st.error(f"אופס, הייתה שגיאה: {e}")
+st.title("📚 BookCraft AI")
+st.caption("הסופר המלאכותי - מיזם כיתת ממר''ם")
 
-                st.info("טיפ: בדוק אם המפתח שהעתקת נכון ומלא.")
+# --- לשוניות ---
+tab1, tab2 = st.tabs(["✍️ יצירת סיפור", "📖 הספרייה המשותפת"])
 
+# --- טאב 1: יצירה ---
+with tab1:
+    with st.form("story_form"): # הוספתי טופס כדי שזה יראה מסודר
+        col1, col2 = st.columns([1, 2])
+        
+        with col1:
+            st.info("הגדרות")
+            hero_name = st.text_input("שם הגיבור:", "דני")
+            genre = st.selectbox("ז'אנר:", ["הרפתקאות", "מדע בדיוני", "מתח", "פנטזיה", "קומדיה"])
+        
+        with col2:
+            st.write("על מה הסיפור?")
+            user_idea = st.text_area("תאר את הרעיון בכמה מילים:", "ילד שמוצא רובוט בחצר ומגלה שהוא בא מהעתיד")
+        
+        submitted = st.form_submit_button("צור סיפור! 🚀", type="primary")
+
+        if submitted:
+            with st.spinner('הבינה המלאכותית כותבת את הסיפור שלך...'):
+                try:
+                    # שימוש במודל החדש והמהיר
+                    model = genai.GenerativeModel('gemini-1.5-flash')
+                    
+                    prompt = f"""
+                    כתוב סיפור קצר ומרתק בעברית.
+                    הגיבור: {hero_name}
+                    הסגנון
