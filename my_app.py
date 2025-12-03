@@ -3,15 +3,15 @@ import google.generativeai as genai
 import sqlite3
 import datetime
 
-# --- שלב 1: הגדרות וחיבור ל-Secrets ---
+# --- הגדרות ---
 try:
     api_key = st.secrets["GOOGLE_API_KEY"]
     genai.configure(api_key=api_key)
 except Exception as e:
-    st.error("⚠️ שגיאה בטעינת המפתח! וודא שהגדרת את GOOGLE_API_KEY ב-Secrets באתר של Streamlit.")
+    st.error("⚠️ שגיאה במפתח API.")
     st.stop()
 
-# --- פונקציות SQL (שמירת סיפורים) ---
+# --- מסד נתונים ---
 def init_db():
     conn = sqlite3.connect('stories.db')
     c = conn.cursor()
@@ -36,71 +36,61 @@ def get_all_stories():
     conn.close()
     return data
 
-# אתחול מסד הנתונים
 init_db()
 
-# --- עיצוב האתר ---
+# --- עיצוב ---
 st.set_page_config(page_title="BookCraft AI", page_icon="📚", layout="centered")
-
 st.title("📚 BookCraft AI")
-st.caption("הסופר המלאכותי - מיזם כיתת ממר''ם")
 
-# --- לשוניות ---
-tab1, tab2 = st.tabs(["✍️ יצירת סיפור", "📖 הספרייה המשותפת"])
+# --- כפתור טכנאי לבדיקת מודלים (החלק החדש!) ---
+with st.sidebar:
+    st.header("⚙️ הגדרות")
+    if st.button("🛠️ בדוק אילו מודלים זמינים"):
+        st.write("בודק מודלים...")
+        try:
+            available_models = []
+            for m in genai.list_models():
+                if 'generateContent' in m.supported_generation_methods:
+                    available_models.append(m.name)
+            st.success(f"נמצאו {len(available_models)} מודלים:")
+            st.code(available_models) # זה ידפיס את הרשימה המדויקת!
+        except Exception as e:
+            st.error(f"שגיאה בבדיקה: {e}")
 
-# --- טאב 1: יצירה ---
+# --- האפליקציה הרגילה ---
+tab1, tab2 = st.tabs(["✍️ יצירה", "📖 ספרייה"])
+
 with tab1:
     with st.form("story_form"):
-        col1, col2 = st.columns([1, 2])
-        
-        with col1:
-            st.info("הגדרות")
-            hero_name = st.text_input("שם הגיבור:", "דני")
-            genre = st.selectbox("ז'אנר:", ["הרפתקאות", "מדע בדיוני", "מתח", "פנטזיה", "קומדיה"])
-        
-        with col2:
-            st.write("על מה הסיפור?")
-            user_idea = st.text_area("תאר את הרעיון בכמה מילים:", "ילד שמוצא רובוט בחצר ומגלה שהוא בא מהעתיד")
-        
+        hero_name = st.text_input("גיבור", "דני")
+        genre = st.selectbox("ז'אנר", ["הרפתקאות", "מדע בדיוני", "פנטזיה"])
+        user_idea = st.text_area("רעיון", "ילד שמוצא רובוט")
         submitted = st.form_submit_button("צור סיפור! 🚀", type="primary")
 
         if submitted:
-            with st.spinner('הבינה המלאכותית כותבת את הסיפור שלך...'):
+            with st.spinner('כותב...'):
                 try:
-                    model = genai.GenerativeModel('gemini-1.5-flash')
+                    # ניסיון ראשון: המודל החדש
+                    model_name = 'gemini-1.5-flash'
                     
-                    # כאן הייתה הבעיה קודם - תיקנתי את זה:
-                    prompt = f"""כתוב סיפור קצר ומרתק בעברית.
-                    הגיבור: {hero_name}
-                    הסגנון: {genre}
-                    הרעיון המרכזי: {user_idea}
-                    חשוב: חלק את הסיפור לפסקאות וכותרות יפות."""
+                    # אם הרשימה למעלה תראה שצריך 'models/gemini-pro', נחליף את זה
+                    model = genai.GenerativeModel(model_name)
                     
+                    prompt = f"כתוב סיפור על {hero_name} בסגנון {genre}. רעיון: {user_idea}"
                     response = model.generate_content(prompt)
-                    story_text = response.text
                     
-                    # הצגה למשתמש
-                    st.success("הסיפור מוכן!")
-                    st.markdown("---")
-                    st.markdown(story_text)
-                    st.balloons()
-                    
-                    # שמירה למסד הנתונים
-                    save_story_to_db(hero_name, genre, story_text)
-                    st.toast('הסיפור נשמר בספרייה בהצלחה!', icon='💾')
+                    st.success("מוכן!")
+                    st.write(response.text)
+                    save_story_to_db(hero_name, genre, response.text)
                     
                 except Exception as e:
-                    st.error(f"אופס, הייתה שגיאה ביצירת הסיפור: {e}")
+                    st.error(f"שגיאה במודל {model_name}:")
+                    st.warning(str(e))
+                    st.info("טיפ: תשתמש בכפתור בצד ימין כדי לראות איזה מודל זמין ולשנות את השם בקוד בהתאם.")
 
-# --- טאב 2: ספרייה ---
 with tab2:
-    st.header("📚 הספרייה המשותפת")
-    st.write("כאן נשמרים כל הסיפורים שנכתבו באפליקציה")
-    
+    st.write("הספרייה")
     stories = get_all_stories()
-    if not stories:
-        st.info("עדיין אין סיפורים. תהיה הראשון לכתוב!")
-    else:
-        for story in stories:
-            with st.expander(f"📘 סיפור על {story[0]} ({story[1]}) - {story[3]}"):
-                st.markdown(story[2])
+    for s in stories:
+        with st.expander(f"{s[0]} - {s[3]}"):
+            st.write(s[2])
