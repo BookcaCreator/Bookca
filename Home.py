@@ -116,26 +116,3 @@ else:
     st.info("👈 בחר פעולה מהתפריט בצד: 'Create Book' או 'My Library'")
 
 # --- כפתור חירום לתיקון המסד (מחק אותי אחרי השימוש!) ---
-with st.sidebar:
-    st.divider()
-    if st.button("⚠️ תיקון מסד נתונים (מחק טבלה ישנה)"):
-        import sqlite3
-        conn = sqlite3.connect('stories_v2.db')
-        c = conn.cursor()
-        c.execute("DROP TABLE IF EXISTS stories") # מוחק את הטבלה הישנה והלא תואמת
-        conn.commit()
-        conn.close()
-        st.success("הטבלה הישנה נמחקה! תרענן את הדף (F5) כדי ליצור את החדשה.")
-
-# --- כפתור חירום (מוגן בסיסמה!) ---
-with st.sidebar:
-    st.divider()
-    if st.button("⚠️ תיקון מסד נתונים (מחק טבלה ישנה)"):
-        import sqlite3
-        conn = sqlite3.connect('stories.db')
-        c = conn.cursor()
-        c.execute("DROP TABLE IF EXISTS stories")
-        conn.commit()
-        conn.close()
-        st.success("הטבלה הישנה נמחקה! תרענן את הדף (F5) כדי ליצור את החדשה.")
-
