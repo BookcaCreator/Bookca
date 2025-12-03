@@ -16,7 +16,7 @@ def check_hashes(password, hashed_text):
 
 # --- ניהול מסד נתונים (משתמשים + סיפורים) ---
 def init_db():
-    conn = sqlite3.connect('stories.db')
+    conn = sqlite3.connect('stories_v2.db')
     c = conn.cursor()
     
     # טבלת משתמשים (חדש!)
@@ -31,7 +31,7 @@ def init_db():
     conn.close()
 
 def add_user(username, password, email, name):
-    conn = sqlite3.connect('stories.db')
+    conn = sqlite3.connect('stories_v2.db')
     c = conn.cursor()
     c.execute('INSERT INTO usersTable(username,password,email,name) VALUES (?,?,?,?)', 
               (username, password, email, name))
@@ -39,7 +39,7 @@ def add_user(username, password, email, name):
     conn.close()
 
 def login_user(username, password):
-    conn = sqlite3.connect('stories.db')
+    conn = sqlite3.connect('stories_v2.db')
     c = conn.cursor()
     c.execute('SELECT * FROM usersTable WHERE username =? AND password = ?', (username,password))
     data = c.fetchall()
@@ -120,9 +120,10 @@ with st.sidebar:
     st.divider()
     if st.button("⚠️ תיקון מסד נתונים (מחק טבלה ישנה)"):
         import sqlite3
-        conn = sqlite3.connect('stories.db')
+        conn = sqlite3.connect('stories_v2.db')
         c = conn.cursor()
         c.execute("DROP TABLE IF EXISTS stories") # מוחק את הטבלה הישנה והלא תואמת
         conn.commit()
         conn.close()
         st.success("הטבלה הישנה נמחקה! תרענן את הדף (F5) כדי ליצור את החדשה.")
+
