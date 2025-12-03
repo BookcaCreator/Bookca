@@ -1,10 +1,9 @@
 import streamlit as st
 import google.generativeai as genai
-import time
 
-# --- שלב 1: הגדרת המפתח ---
-"AIzaSyApLEIMmV8zlcy7apDUQ0vtDMM7d8l3uEI"
-GOOGLE_API_KEY = "AIzaSyApLEIMmV8zlcy7apDUQ0vtDMM7d8l3uEI"
+# ככה מושכים את הסיסמה מהכספת הסודית של Streamlit Cloud
+api_key = st.secrets["GOOGLE_API_KEY"]
+genai.configure(api_key=api_key)
 
 # מגדירים לתוכנה להשתמש במפתח הזה
 genai.configure(api_key=GOOGLE_API_KEY)
@@ -61,4 +60,5 @@ if st.button("צור ספר! 🚀", type="primary"):
                 
             except Exception as e:
                 st.error(f"אופס, הייתה שגיאה: {e}")
+
                 st.info("טיפ: בדוק אם המפתח שהעתקת נכון ומלא.")
