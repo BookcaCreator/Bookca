@@ -60,7 +60,7 @@ st.subheader("👮 אזור מנהלים (גיבוי)")
 # סיסמה פשוטה כדי שסתם אנשים לא יורידו את המידע
 password = st.text_input("הכנס סיסמת מנהל להורדת הגיבוי:", type="password")
 
-if password == "BookCraft2026": # תשנה לסיסמה שרק אתה יודע
+if password == "9806": # תשנה לסיסמה שרק אתה יודע
     
     # בודק אם הקובץ בכלל קיים
     if os.path.exists("stories.db"):
