@@ -1,5 +1,6 @@
 import streamlit as st
 import sqlite3
+import os
 
 st.set_page_config(page_title="הספרייה שלי", page_icon="📚", layout="wide")
 
@@ -53,3 +54,23 @@ else:
                     def show_story():
                         st.markdown(story[3])
                     show_story()
+st.divider()
+st.subheader("👮 אזור מנהלים (גיבוי)")
+
+# סיסמה פשוטה כדי שסתם אנשים לא יורידו את המידע
+password = st.text_input("הכנס סיסמת מנהל להורדת הגיבוי:", type="password")
+
+if password == "BookCraft2026": # תשנה לסיסמה שרק אתה יודע
+    
+    # בודק אם הקובץ בכלל קיים
+    if os.path.exists("stories.db"):
+        with open("stories.db", "rb") as fp:
+            st.download_button(
+                label="📥 הורד את קובץ הנתונים (stories.db) למחשב שלי",
+                data=fp,
+                file_name="stories_backup.db",
+                mime="application/octet-stream"
+            )
+        st.success("יש קובץ נתונים מוכן להורדה! הורד אותו כדי לשמור את הסיפורים של כולם.")
+    else:
+        st.warning("עדיין לא נוצרו סיפורים, אז אין קובץ להורדה.")
