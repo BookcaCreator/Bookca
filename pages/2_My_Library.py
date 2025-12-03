@@ -12,7 +12,7 @@ if 'logged_in' not in st.session_state or not st.session_state['logged_in']:
 
 # --- פונקציה לשליפת הספרים (רק של המשתמש המחובר!) ---
 def get_my_stories():
-    conn = sqlite3.connect('stories.db')
+    conn = sqlite3.connect('stories_v2.db')
     c = conn.cursor()
     # בודק אם הטבלה קיימת בכלל
     try:
@@ -60,10 +60,10 @@ st.divider()
 with st.expander("ניהול וגיבוי (למנהלים בלבד)"):
     password = st.text_input("סיסמת מנהל:", type="password")
     if password == "BookCraft2026": 
-        if os.path.exists("stories.db"):
-            with open("stories.db", "rb") as fp:
+        if os.path.exists("stories_v2.db"):
+            with open("stories_v2.db", "rb") as fp:
                 st.download_button(
-                    label="📥 הורד גיבוי מלא (stories.db)",
+                    label="📥 הורד גיבוי מלא (stories_v2.db)",
                     data=fp,
                     file_name="stories_backup.db",
                     mime="application/octet-stream"
