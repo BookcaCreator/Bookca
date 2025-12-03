@@ -79,19 +79,3 @@ else:
                     def show_story():
                         st.markdown(story[4])
                     show_story()
-
-# --- המשך אזור המנהלים ---
-    st.divider()
-    st.write("🔧 **שחזור מערכת (Restore):**")
-    st.caption("העלה לכאן קובץ גיבוי כדי לשחזר את כל המשתמשים והסיפורים שנמחקו")
-    
-    uploaded_file = st.file_uploader("בחר קובץ stories_backup.db מהמחשב", type="db")
-    
-    if uploaded_file is not None:
-        if st.button("⚠️ דרוס את הנתונים הקיימים ושחזר מהגיבוי"):
-            # שומרים את הקובץ שהועלה בתור מסד הנתונים הפעיל
-            with open("stories_v3.db", "wb") as f:
-                f.write(uploaded_file.getbuffer())
-            st.success("השחזור הצליח! כל המשתמשים והסיפורים חזרו.")
-            st.balloons()
-            st.rerun() # מרענן את הדף כדי לראות את הנתונים החדשים
