@@ -23,7 +23,7 @@ MODEL_NAME = 'models/gemini-2.0-flash'
 
 # --- שמירת נתונים (SQL) - הגרסה החדשה עם שם משתמש! ---
 def save_story_to_db(title, genre, content):
-    conn = sqlite3.connect('stories.db')
+    conn = sqlite3.connect('stories_v2.db')
     c = conn.cursor()
     # יוצר טבלה עם עמודת username אם לא קיימת
     c.execute("CREATE TABLE IF NOT EXISTS stories (username TEXT, hero TEXT, genre TEXT, content TEXT, created_at TEXT)")
