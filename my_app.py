@@ -42,7 +42,7 @@ init_db()
 st.set_page_config(page_title="BookCraft AI", page_icon="📚", layout="centered")
 st.title("📚 BookCraft AI")
 
-# --- כפתור טכנאי לבדיקת מודלים (החלק החדש!) ---
+# --- כפתור טכנאי (נשאיר אותו למקרה שנצטרך שוב) ---
 with st.sidebar:
     st.header("⚙️ הגדרות")
     if st.button("🛠️ בדוק אילו מודלים זמינים"):
@@ -52,12 +52,11 @@ with st.sidebar:
             for m in genai.list_models():
                 if 'generateContent' in m.supported_generation_methods:
                     available_models.append(m.name)
-            st.success(f"נמצאו {len(available_models)} מודלים:")
-            st.code(available_models) # זה ידפיס את הרשימה המדויקת!
+            st.code(available_models)
         except Exception as e:
             st.error(f"שגיאה בבדיקה: {e}")
 
-# --- האפליקציה הרגילה ---
+# --- האפליקציה ---
 tab1, tab2 = st.tabs(["✍️ יצירה", "📖 ספרייה"])
 
 with tab1:
@@ -70,10 +69,9 @@ with tab1:
         if submitted:
             with st.spinner('כותב...'):
                 try:
-                    # ניסיון ראשון: המודל החדש
-                    model_name = 'gemini-1.5-flash'
+                    # --- התיקון הגדול: שימוש במודל שמצאנו ברשימה שלך ---
+                    model_name = 'models/gemini-2.0-flash'
                     
-                    # אם הרשימה למעלה תראה שצריך 'models/gemini-pro', נחליף את זה
                     model = genai.GenerativeModel(model_name)
                     
                     prompt = f"כתוב סיפור על {hero_name} בסגנון {genre}. רעיון: {user_idea}"
@@ -86,7 +84,7 @@ with tab1:
                 except Exception as e:
                     st.error(f"שגיאה במודל {model_name}:")
                     st.warning(str(e))
-                    st.info("טיפ: תשתמש בכפתור בצד ימין כדי לראות איזה מודל זמין ולשנות את השם בקוד בהתאם.")
+                    st.info("טיפ: נסה מודל אחר מהרשימה בצד ימין")
 
 with tab2:
     st.write("הספרייה")
