@@ -4,13 +4,12 @@ import sqlite3
 import datetime
 
 # --- שלב 1: הגדרות וחיבור ל-Secrets ---
-# כאן התיקון הגדול! אנחנו מושכים את המפתח מהכספת של Streamlit
 try:
     api_key = st.secrets["GOOGLE_API_KEY"]
     genai.configure(api_key=api_key)
 except Exception as e:
     st.error("⚠️ שגיאה בטעינת המפתח! וודא שהגדרת את GOOGLE_API_KEY ב-Secrets באתר של Streamlit.")
-    st.stop() # עוצר את האפליקציה אם אין מפתח
+    st.stop()
 
 # --- פונקציות SQL (שמירת סיפורים) ---
 def init_db():
@@ -51,7 +50,7 @@ tab1, tab2 = st.tabs(["✍️ יצירת סיפור", "📖 הספרייה המ�
 
 # --- טאב 1: יצירה ---
 with tab1:
-    with st.form("story_form"): # הוספתי טופס כדי שזה יראה מסודר
+    with st.form("story_form"):
         col1, col2 = st.columns([1, 2])
         
         with col1:
@@ -68,10 +67,40 @@ with tab1:
         if submitted:
             with st.spinner('הבינה המלאכותית כותבת את הסיפור שלך...'):
                 try:
-                    # שימוש במודל החדש והמהיר
                     model = genai.GenerativeModel('gemini-1.5-flash')
                     
-                    prompt = f"""
-                    כתוב סיפור קצר ומרתק בעברית.
+                    # כאן הייתה הבעיה קודם - תיקנתי את זה:
+                    prompt = f"""כתוב סיפור קצר ומרתק בעברית.
                     הגיבור: {hero_name}
-                    הסגנון
+                    הסגנון: {genre}
+                    הרעיון המרכזי: {user_idea}
+                    חשוב: חלק את הסיפור לפסקאות וכותרות יפות."""
+                    
+                    response = model.generate_content(prompt)
+                    story_text = response.text
+                    
+                    # הצגה למשתמש
+                    st.success("הסיפור מוכן!")
+                    st.markdown("---")
+                    st.markdown(story_text)
+                    st.balloons()
+                    
+                    # שמירה למסד הנתונים
+                    save_story_to_db(hero_name, genre, story_text)
+                    st.toast('הסיפור נשמר בספרייה בהצלחה!', icon='💾')
+                    
+                except Exception as e:
+                    st.error(f"אופס, הייתה שגיאה ביצירת הסיפור: {e}")
+
+# --- טאב 2: ספרייה ---
+with tab2:
+    st.header("📚 הספרייה המשותפת")
+    st.write("כאן נשמרים כל הסיפורים שנכתבו באפליקציה")
+    
+    stories = get_all_stories()
+    if not stories:
+        st.info("עדיין אין סיפורים. תהיה הראשון לכתוב!")
+    else:
+        for story in stories:
+            with st.expander(f"📘 סיפור על {story[0]} ({story[1]}) - {story[3]}"):
+                st.markdown(story[2])
