@@ -130,23 +130,6 @@ with st.sidebar:
 # --- כפתור חירום (מוגן בסיסמה!) ---
 with st.sidebar:
     st.divider()
-    # קודם כל מבקשים סיסמה
-    admin_pass = st.text_input("סיסמת מנהל למחיקת מסד:", type="password")
-    
-    if admin_pass == "BookCraft2026": # הסיסמה הסודית שלך
-        if st.button("⚠️ מנהל בלבד: מחק את כל הנתונים"):
-            import sqlite3
-            # שים לב שזה השם המעודכן של הקובץ שלך
-            conn = sqlite3.connect('stories_v2.db') 
-            c = conn.cursor()
-            c.execute("DROP TABLE IF EXISTS stories")
-            conn.commit()
-            conn.close()
-            st.error("הטבלה נמחקה! המערכת אופסה.")
-
-# --- למחוק את כל הגוש הזה! ---
-with st.sidebar:
-    st.divider()
     if st.button("⚠️ תיקון מסד נתונים (מחק טבלה ישנה)"):
         import sqlite3
         conn = sqlite3.connect('stories.db')
@@ -155,3 +138,4 @@ with st.sidebar:
         conn.commit()
         conn.close()
         st.success("הטבלה הישנה נמחקה! תרענן את הדף (F5) כדי ליצור את החדשה.")
+
