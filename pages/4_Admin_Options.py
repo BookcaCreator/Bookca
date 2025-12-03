@@ -5,7 +5,7 @@ import pandas as pd # ספרייה לטיפול בטבלאות בצורה נוח
 
 st.set_page_config(page_title="ניהול מערכת", page_icon="⛔", layout="wide")
 
-ADMIN_USER = "Manager" # ⚠️ וודא שזה השם שלך!
+ADMIN_USER = "Ranchok" # ⚠️ וודא שזה השם שלך!
 DB_FILE = 'stories_v3.db'
 
 # --- הגנה ---
