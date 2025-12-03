@@ -1,3 +1,8 @@
+# --- הגנה: אם לא מחובר, זרוק אותו לדף הבית ---
+if 'logged_in' not in st.session_state or not st.session_state['logged_in']:
+    st.warning("עליך להתחבר קודם!")
+    st.switch_page("Home.py") # מעיף אותו חזרה ללוגין
+    st.stop()
 import streamlit as st
 import sqlite3
 import os
